@@ -30,6 +30,11 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.awt.image.*;
+import java.awt.*;
+import javax.swing.*;
+import org.opencv.videoio.*;
+
 
 
 
@@ -40,12 +45,18 @@ import org.opencv.imgproc.Imgproc;
  * project.
  */
 public class Robot extends TimedRobot {
+  double dampen =1;
 
-  TalonFX talonTest = new TalonFX(0);
-  VictorSPX cimTest = new VictorSPX(2);
+  // TalonFX talonTest = new TalonFX(0);
+  // VictorSPX cimTest = new VictorSPX(2);
   Joystick gamepadTest = new Joystick(0);
+  
+  VictorSPX motor1 = new VictorSPX(1);
+  VictorSPX motor2 = new VictorSPX(2);
+  VictorSPX motor3 = new VictorSPX(8);
+  VictorSPX motor4 = new VictorSPX(9);
 
-  CANSparkMax neoTest;
+  // CANSparkMax neoTest;
 
   Thread m_visionThread;
 
@@ -57,59 +68,82 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
+
+  
+
   @Override
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
 
-    neoTest = new CANSparkMax(1, MotorType.kBrushless);
-    // CameraServer.startAutomaticCapture();
+    // neoTest = new CANSparkMax(1, MotorType.kBrushless);
+    // // CameraServer.startAutomaticCapture();
 
-    //camera garbage
-    m_visionThread =
-        new Thread(
-            () -> {
-              // Get the UsbCamera from CameraServer
-              UsbCamera camera = CameraServer.startAutomaticCapture();
-              // Set the resolution
-              camera.setResolution(640, 480);
+    // VideoCapture camera = new VideoCapture(0);
+    // Mat frame = new Mat();
+    // camera.read(frame);
+    // //use frame for image processing from here
 
-              // Get a CvSink. This will capture Mats from the camera
-              CvSink cvSink = CameraServer.getVideo();
-              // Setup a CvSource. This will send images back to the Dashboard
-              CvSource outputStream = CameraServer.putVideo("Rectangle", 640, 480);
+    // Image img = Mat2BufferedImage(frame);
+    // displayImage(img);
 
-              // Mats are very memory expensive. Lets reuse this Mat.
-              Mat mat = new Mat();
-
-              //helios's garbage
-              // Mat grayMat = new Mat();
-              // Imgproc.cvtColor(mat, grayMat, Imgproc.COLOR_BGR2GRAY);
-              // grayMat = new Mat();
+    
 
 
-              // This cannot be 'true'. The program will never exit if it is. This
-              // lets the robot stop this thread when restarting robot code or
-              // deploying.
-              while (!Thread.interrupted()) {
-                // Tell the CvSink to grab a frame from the camera and put it
-                // in the source mat.  If there is an error notify the output.
-                if (cvSink.grabFrame(mat) == 0) {
-                  // Send the output the error.
-                  outputStream.notifyError(cvSink.getError());
-                  // skip the rest of the current iteration
-                  continue;
-                }
-                // Put a rectangle on the image
-                Imgproc.rectangle(
-                    mat, new Point(100, 100), new Point(400, 400), new Scalar(255, 255, 255), 5);
-                // Give the output stream a new image to display
-                outputStream.putFrame(mat);
-              }
-            });
-    m_visionThread.setDaemon(true);
-    m_visionThread.start();
+    // //camera garbage
+    // m_visionThread =
+    //     new Thread(
+    //         () -> {
+    //           // Get the UsbCamera from CameraServer
+    //           UsbCamera camera = CameraServer.startAutomaticCapture();
+    //           // Set the resolution
+    //           camera.setResolution(640, 480);
+
+    //           // Get a CvSink. This will capture Mats from the camera
+    //           CvSink cvSink = CameraServer.getVideo();
+    //           // Setup a CvSource. This will send images back to the Dashboard
+    //           CvSource outputStream = CameraServer.putVideo("Rectangle", 640, 480);
+
+    //           // Mats are very memory expensive. Lets reuse this Mat.
+    //           Mat mat = new Mat();
+
+    //           //helios's garbage
+              
+    //           // Mat matGrayTest = new Mat();
+    //           // Imgproc.cvtColor(mat, matGrayTest, Imgproc.COLOR_RGB2GRAY);
+    //           // matGrayTest = new Mat();
+
+    //           // Mat matGray = new Mat();
+    //           // Imgproc.cvtColor(matGrayTest, matGray, Imgproc.COLOR_GRAY2BGR);
+    //           // matGray = new Mat();
+
+
+    //           // This cannot be 'true'. The program will never exit if it is. This
+    //           // lets the robot stop this thread when restarting robot code or
+    //           // deploying.
+    //           while (!Thread.interrupted()) {
+    //             // Tell the CvSink to grab a frame from the camera and put it
+    //             // in the source mat.  If there is an error notify the output.
+    //             if (cvSink.grabFrame(mat) == 0) {
+    //               // Send the output the error.
+    //               outputStream.notifyError(cvSink.getError());
+    //               // skip the rest of the current iteration
+    //               continue;
+    //             }
+    //             // Put a rectangle on the image
+    //             Imgproc.rectangle(
+    //                 mat, new Point(100, 100), new Point(400, 400), new Scalar(255, 255, 255), 5);
+    //             // Give the output stream a new image to display
+
+    //             Mat matGrayTest = new Mat();
+    //             Imgproc.cvtColor(mat, matGrayTest, Imgproc.COLOR_BGR2GRAY);
+    //             matGrayTest = new Mat();
+    //             outputStream.putFrame(matGrayTest);
+    //           }
+    //         });
+    // m_visionThread.setDaemon(true);
+    // m_visionThread.start();
   }
 
 
@@ -167,13 +201,15 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    double stick = gamepadTest.getRawAxis(1);
-    double stick2 = gamepadTest.getRawAxis(5);
-    talonTest.set(ControlMode.PercentOutput, stick);
-    cimTest.set(ControlMode.PercentOutput, stick);
-    neoTest.set(stick2);
     
-   
+    double leftStick = gamepadTest.getRawAxis(1);
+    double rightStick = gamepadTest.getRawAxis(5);
+
+    motor1.set(ControlMode.PercentOutput, -rightStick * dampen);
+    motor2.set(ControlMode.PercentOutput, rightStick * dampen);
+
+    motor3.set(ControlMode.PercentOutput, leftStick * dampen);
+    motor4.set(ControlMode.PercentOutput, -leftStick * dampen);
   }
 
   @Override
@@ -185,4 +221,5 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {}
+
 }
