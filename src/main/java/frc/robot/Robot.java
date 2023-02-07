@@ -5,18 +5,24 @@
 package frc.robot;
 
 import frc.robot.Constants;
+import java.util.*;
+import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax; 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 
 import edu.wpi.first.cameraserver.CameraServer;
 
@@ -34,6 +40,9 @@ import java.awt.image.*;
 import java.awt.*;
 import javax.swing.*;
 import org.opencv.videoio.*;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 
 
@@ -45,16 +54,28 @@ import org.opencv.videoio.*;
  * project.
  */
 public class Robot extends TimedRobot {
-  double dampen =1;
+  double dampen = .4;
 
   // TalonFX talonTest = new TalonFX(0);
   // VictorSPX cimTest = new VictorSPX(2);
   Joystick gamepadTest = new Joystick(0);
   
-  VictorSPX motor1 = new VictorSPX(1);
-  VictorSPX motor2 = new VictorSPX(2);
-  VictorSPX motor3 = new VictorSPX(8);
-  VictorSPX motor4 = new VictorSPX(9);
+  //TalonFX motor1 = new TalonFX(1);
+  //TalonFX motor2 = new TalonFX(2);
+  //TalonFX motor3 = new TalonFX(8);
+  //TalonFX motor4 = new TalonFX(9);
+
+  //AHRS gyro = new AHRS(SPI.Port.kMXP);
+  //ADXRS450_Gyro gyro = new ADXRS450_Gyro(); //Ethan was playing with this
+  
+  PhotonCamera camera;
+
+  double heading;
+  
+
+  //AHRS gyro = new AHRS(SPI.Port.kMXP); //helios is playing with this, ignore him
+
+  //motor1.setInverted(false);
 
   // CANSparkMax neoTest;
 
@@ -144,6 +165,8 @@ public class Robot extends TimedRobot {
     //         });
     // m_visionThread.setDaemon(true);
     // m_visionThread.start();
+
+    camera = new PhotonCamera("somethingstupid");
   }
 
 
@@ -185,7 +208,9 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    
+  }
 
   @Override
   public void teleopInit() {
@@ -201,15 +226,37 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    
-    double leftStick = gamepadTest.getRawAxis(1);
-    double rightStick = gamepadTest.getRawAxis(5);
+    //gyro.calibrate();
 
-    motor1.set(ControlMode.PercentOutput, -rightStick * dampen);
-    motor2.set(ControlMode.PercentOutput, rightStick * dampen);
+    // PhotonPipelineResult result = camera.getLatestResult();
+    // boolean hasTargets = result.hasTargets();
+    // List<PhotonTrackedTarget> targets = result.getTargets();
+    // PhotonTrackedTarget target = result.getBestTarget();
 
-    motor3.set(ControlMode.PercentOutput, leftStick * dampen);
-    motor4.set(ControlMode.PercentOutput, -leftStick * dampen);
+    //double throttle = gamepadTest.getRawAxis(1);
+    //double turnValue = gamepadTest.getRawAxis(4);
+
+    //motor1.set(ControlMode.PercentOutput, (throttle+turnValue) * dampen);
+    //motor2.set(ControlMode.PercentOutput, (throttle+turnValue) * dampen);
+
+    //motor3.set(ControlMode.PercentOutput, (throttle-turnValue) * dampen);
+    //motor4.set(ControlMode.PercentOutput, -(throttle-turnValue) * dampen);
+
+    // SmartDashboard.putNumber("Motor 1 Speed: ", motor1.getMotorOutputPercent());
+    // SmartDashboard.putNumber("Motor 1 Temp: ", motor1.getTemperature());
+    // SmartDashboard.putNumber("Motor 1 Voltage: ", motor1.getBusVoltage());
+
+    // SmartDashboard.putNumber("Gyros ", gyro.getAngle()); // helios is playing with this too
+    //SmartDashboard.putNumber("Yaw ", gyro.getYaw()); // helios is playing with this too
+    //SmartDashboard.putNumber("Pitch ", gyro.getPitch()); // helios is playing with this too
+    //SmartDashboard.putNumber("Roll ", gyro.getRoll()); // helios is playing with this too
+    //SmartDashboard.putNumber("Compass ", gyro.getCompassHeading()); // helios is playing with this too
+    // SmartDashboard.putNumber("Cam Yaw", target.getYaw());
+    // SmartDashboard.putNumber("Cam Pitch", target.getPitch());
+    // SmartDashboard.putNumber("Cam Area", target.getArea());
+    // SmartDashboard.putNumber("Cam Skew", target.getSkew());
+
+
   }
 
   @Override
